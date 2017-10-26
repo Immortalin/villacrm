@@ -1,0 +1,47 @@
+.dataTable td .dt-checkboxes, .dataTable th input {
+    display: none;
+}
+.dataTable thead .select-checkbox {
+  position: relative;
+}
+.dataTable thead .select-checkbox:before,
+.dataTable thead .select-checkbox:after {
+  display: inline-block;
+  color: #455A64;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  cursor: pointer;
+}
+.dataTable thead .select-checkbox:before {
+  content: '';
+  background-color: #fff;
+  width: 18px;
+  height: 18px;
+  margin-top: -9px;
+  margin-left: -9px;
+  border: 2px solid #607D8B;
+  border-radius: 2px;
+}
+.dataTable thead .selected .select-checkbox:after {
+  content: "\e600";
+  font-family: 'icomoon';
+  font-size: 16px;
+  line-height: 1;
+  margin-top: -8px;
+  margin-left: -8px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.dataTable thead .indeterminate .select-checkbox:after {
+    content: "";
+    line-height: 1;
+    width: 10px;
+    display: block;
+    height: 3px;
+    margin-top: -2px;
+    background-color: #555555;
+    margin-left: -5px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
