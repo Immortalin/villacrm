@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"errors"
 	"log"
 	"net/url"
 	"strconv"
@@ -16,15 +17,37 @@ var (
 	ClientCollection = "clients"
 )
 
-func Insert(client models.Client) bool {
+func CheckIfUserExists(email string) bool {
+	found := true
+	client := models.Client{}
 	Db := datasource.MgoDb{}
+	Db.Init()
+	c := Db.C(ClientCollection)
+	if err := c.Find(bson.M{"email": email}).One(&client); err != nil {
+		found = false
+	}
+	Db.Close()
+
+	return found
+}
+
+// CreateUser inserts a new user in the db
+func CreateUser(client models.Client) (models.Client, error) {
+
+	if CheckIfUserExists(client.Email) {
+		return models.Client{}, errors.New("User already exists")
+	}
+	var error error
+	Db := datasource.MgoDb{}
+	client.ID = bson.NewObjectId()
 	Db.Init()
 	c := Db.C(ClientCollection)
 	if err := c.Insert(&client); err != nil {
 		golog.Error(err.Error())
-		return false
+		error = err
 	}
-	return true
+	Db.Close()
+	return client, error
 }
 
 func GetClientTable(urlQuery url.Values) ([]models.Client, int, int) {

@@ -35,7 +35,23 @@ function clientTable() {
 				}
 			},
             { "name": "name", "data": "name" },
-            { "name": "villa", "data": "villa" },
+			{ "name": "email", "data": "email" },
+            { "name": "villas", "data": "villas" },
+			{ "name": "checkin", "data": "in",	render: function ( data, type, full ) {
+				var dt = new Date(data)
+			  	return dt.getDate( ) + "-" + (dt.getMonth( ) + 1) + '-' + dt.getFullYear( );
+			}},
+			{ "name": "checkout", "data": "out", render: function ( data, type, full ) {
+				var dt = new Date(data)
+			  	return dt.getDate( ) + "-" + (dt.getMonth( ) + 1) + '-' + dt.getFullYear( );
+			}},
+			{ "name": "days", "data": "days" },
+			{ "name": "price", "data": "price",
+			render: function ( data, type, full ) {
+			  	return full.currency+" "+full.price;
+			}},
+			{ "name": "status", "data": "status" },
+			{ "name": "source", "data": "source" },
 			{
 				"data": null,
                 "defaultContent": '<i class="icon-trash deleteActivityType"></i>',
@@ -151,8 +167,17 @@ function clientTable() {
 }
 
 function newClientHandler() {
-    $('.popupContainer').html(businessEditModal);
-    $('.clientModal').modal();
+	$('.popupContainer').html(businessEditModal);
+	$('.clientModal').modal();
+	$('.clientVillas').select2();
+	$(".switch").bootstrapSwitch();
+	$(".clientPrice").TouchSpin({
+        min: 0,
+        max: 1000000,
+        step: 0.1,
+        decimals: 2,
+    });
+	var clientCalendar = new HotelDatepicker(document.getElementById('clientCalendar'));
 }
 
 var businessEditModal = '<div class="modal fade clientModal ">'+
@@ -160,7 +185,7 @@ var businessEditModal = '<div class="modal fade clientModal ">'+
 							'<div class="modal-content">'+
 								'<div class="modal-header">'+
 									'<button type="button" class="close" data-dismiss="modal">×</button>'+
-									'<h5 id="businessEditModalLabel" class="modal-title">Update business - <strong></strong></h5>'+
+									'<h5 id="businessEditModalLabel" class="modal-title">Add Client <strong></strong></h5>'+
 								'</div>'+
 
 								'<div class="modal-body">'+
@@ -183,8 +208,8 @@ var businessEditModal = '<div class="modal fade clientModal ">'+
 														'</div>'+
 
 														'<div class="col-sm-6">'+
-															'<label>No.</label>'+
-															'<input type="text" placeholder="" name="no" class="form-control clientNo">'+
+															'<label>Email</label>'+
+															'<input type="text" placeholder="" name="email" class="form-control clientEmail">'+
 														'</div>'+
 													'</div>'+
 												'</div>'+
@@ -192,15 +217,51 @@ var businessEditModal = '<div class="modal fade clientModal ">'+
 												'<div class="form-group">'+
 													'<div class="row">'+
 														'<div class="col-sm-6">'+
-															'<label>Villa</label>'+
-															'<input type="text" placeholder="" name="villa" class="form-control clientVilla">'+
+															'<label>Villas</label>'+
+															'<select class="form-control clientVillas" multiple="multiple" name="villas">'+
+																'<option value="Panorama Villa">Panorama Villa</option>'+
+																'<option value="Oceania Villa">Oceania Villa</option>'+
+																'<option value="Poseidonia Villa">Poseidonia Villa</option>'+
+																'<option value="Combination">Combination</option>'+
+															'</select>'+
 														'</div>'+
 
 														'<div class="col-sm-6">'+
-
+															'<label>Dates</label>'+
+															'<input class="form-control" name="dates" id="clientCalendar">'+
 														'</div>'+
 													'</div>'+
 												'</div>'+
+
+												'<div class="form-group">'+
+												'<div class="row">'+
+													'<div class="col-sm-4">'+
+														'<label>Status</label>'+
+														'<div class="checkbox checkbox-switch">'+
+														'<label>'+
+															'<input type="checkbox" name="status" class="switch" data-on-text="Confirmed" data-off-text="Pending" data-on-color="success" data-off-color="default"'+
+														'</label>'+
+													'</div>'+
+													'</div>'+
+
+													'<div class="col-sm-4 clientMoney">'+
+														'<label>Price</label>'+
+														'<div class="input-group w-100">'+
+															'<div class="input-group-btn">'+
+																'<select class="form-control clientCurrency" name="currency">'+
+																	'<option value="£">£</option>'+
+																	'<option value="$">$</option>'+
+																'</select>'+
+															'</div>'+
+															'<input type="text" class="form-control clientPrice" name="price">'+
+														'</div>'+
+													'</div>'+
+													'<div class="col-sm-4">'+
+														'<label>Received by</label>'+
+														'<input class="form-control" name="source">'+
+													'</div>'+
+												'</div>'+
+											'</div>'+
 											'</div>'+
 
 											'<div class="tab-pane" id="detailsTab">'+

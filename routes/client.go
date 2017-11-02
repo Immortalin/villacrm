@@ -4,7 +4,7 @@ import (
 	"github.com/kataras/iris"
 	"github.com/speedwheel/villacrm/models"
 	"github.com/speedwheel/villacrm/repositories"
-	"gopkg.in/mgo.v2/bson"
+	"github.com/speedwheel/villacrm/services"
 )
 
 var (
@@ -17,22 +17,39 @@ func GetClientsHandler(ctx iris.Context) {
 	ctx.View(PathClientList + ".html")
 }
 
-func AddGetClientsHandler(ctx iris.Context) {
+func PostClientHandler(ctx iris.Context) {
 	if !ctx.IsAjax() {
 		ctx.StatusCode(iris.StatusNotFound)
 	}
-	client := models.Client{}
-	err := ctx.ReadForm(&client)
+	var msg string
+	var (
+		name     = ctx.FormValue("name")
+		email    = ctx.FormValue("email")
+		villas   = ctx.FormValue("villas")
+		dates    = ctx.FormValue("dates")
+		status   = ctx.FormValue("status")
+		currency = ctx.FormValue("currency")
+		price    = ctx.FormValue("price")
+		source   = ctx.FormValue("source")
+	)
+
+	_, err := services.CreateUser(villas, dates, price, status, models.Client{
+		Name:     name,
+		Email:    email,
+		Currency: currency,
+		Source:   source,
+	})
+
 	if err != nil {
-		ctx.StatusCode(iris.StatusInternalServerError)
+		ctx.Application().Logger().Error(err.Error())
+		msg = err.Error()
+	}
+
+	if err != nil {
 		ctx.Application().Logger().Error(err.Error())
 	}
-	client.ID = bson.NewObjectId()
-	r := repositories.Insert(client)
-	if r == false {
-		ctx.StatusCode(iris.StatusInternalServerError)
-	}
-	ctx.JSON(map[string]bool{"status": r})
+
+	ctx.JSON(map[string]interface{}{"error": msg})
 }
 
 func TableClientsHandler(ctx iris.Context) {

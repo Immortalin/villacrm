@@ -45,3 +45,18 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
+.w-100 {
+    width:100%;
+}
+.clientMoney .input-group-btn {
+    width:55px;
+}
+.clientCurrency {
+  background-color: #fcfcfc;
+}
+#datepicker-clientCalendar {
+  z-index:3;
+}
+.checkbox-switch {
+  margin:0;
+}

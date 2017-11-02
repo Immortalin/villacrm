@@ -7497,9 +7497,9 @@ legend.alpaca-container-label {
  *  Latest update: Mar 10, 2016
  *
  * ---------------------------------------------------------------------------- */
-.datepicker > div {
+/*.datepicker > div {
   display: none;
-}
+}*/
 .datepicker.datepicker-dropdown {
   top: 0;
   left: 0;

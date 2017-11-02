@@ -10,6 +10,6 @@ func Configure(b *bootstrap.Bootstrapper) {
 
 	client := b.Party("/client")
 	client.Get("/list", GetClientsHandler)
-	client.Post("/add", AddGetClientsHandler)
+	client.Post("/add", PostClientHandler)
 	client.Get("/table", TableClientsHandler)
 }
