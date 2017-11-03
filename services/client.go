@@ -1,18 +1,25 @@
 package services
 
 import (
+	"errors"
 	"strconv"
-	"strings"
 
 	"github.com/kataras/golog"
 	"github.com/speedwheel/villacrm/models"
 	"github.com/speedwheel/villacrm/repositories"
 )
 
-func CreateUser(villas string, dates string, price string, status string, client models.Client) (models.Client, error) {
-	var error error
-	d1, d2, days := models.CalculateBookingDates(dates)
-	villasSlice := strings.Split(villas, " ")
+func CreateUser(dates string, price string, status string, client models.Client) (models.Client, error) {
+
+	if client.Name == "" || client.Email == "" || client.Villa == "" || status == "" || client.Currency == "" || price == "" || client.Referral == "" {
+		return client, errors.New("Please fill in all the fields")
+	}
+	if dates != "" {
+		d1, d2, days := models.CalculateBookingDates(dates)
+		client.In = d1
+		client.Out = d2
+		client.Days = days
+	}
 	statusInt := 0
 	if status == "on" {
 		statusInt = 1
@@ -22,14 +29,8 @@ func CreateUser(villas string, dates string, price string, status string, client
 		golog.Error(err.Error())
 	}
 
-	client.In = d1
-	client.Out = d2
-	client.Days = days
-	client.Villas = villasSlice
 	client.Status = statusInt
 	client.Price = priceFloat64
 
 	return repositories.CreateUser(client)
-
-	return client, error
 }

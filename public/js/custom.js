@@ -1,4 +1,5 @@
 var $clientsTable = $('#clientTable');
+var clientCalendar;
 $(document).ready( function() {
 	clientTable();
 });
@@ -36,22 +37,33 @@ function clientTable() {
 			},
             { "name": "name", "data": "name" },
 			{ "name": "email", "data": "email" },
-            { "name": "villas", "data": "villas" },
+            { "name": "villas", "data": "villa" },
 			{ "name": "checkin", "data": "in",	render: function ( data, type, full ) {
+				if(data == "0001-01-01T00:00:00Z") {
+					return "-";
+				}
 				var dt = new Date(data)
-			  	return dt.getDate( ) + "-" + (dt.getMonth( ) + 1) + '-' + dt.getFullYear( );
+			  	return ("0" + dt.getDate()).slice(-2) + "-" + ("0" + (dt.getMonth() + 1)).slice(-2) + '-' + dt.getFullYear();
 			}},
 			{ "name": "checkout", "data": "out", render: function ( data, type, full ) {
+				if(data == "0001-01-01T00:00:00Z") {
+					return "-";
+				}
 				var dt = new Date(data)
 			  	return dt.getDate( ) + "-" + (dt.getMonth( ) + 1) + '-' + dt.getFullYear( );
 			}},
-			{ "name": "days", "data": "days" },
+			{ "name": "days", "data": "days", render: function ( data, type, full ) {
+				if(data == 0) {
+					return "-";
+				}
+				return data;
+			}},
 			{ "name": "price", "data": "price",
 			render: function ( data, type, full ) {
 			  	return full.currency+" "+full.price;
 			}},
 			{ "name": "status", "data": "status" },
-			{ "name": "source", "data": "source" },
+			{ "name": "source", "data": "referral" },
 			{
 				"data": null,
                 "defaultContent": '<i class="icon-trash deleteActivityType"></i>',
@@ -75,7 +87,6 @@ function clientTable() {
     });
 
     dt.on( 'select deselect draw', function ( e, dt, type, indexes ) {
-		console.log($("tbody .dt-checkboxes:checked").length);
 		if ( $("tbody .dt-checkboxes:checked").length == $('tbody .dt-checkboxes').length) {
 			$("thead tr").removeClass("indeterminate");
 			$("thead tr").addClass("selected");
@@ -95,16 +106,6 @@ function clientTable() {
 
 	});
 
-
-	$('.activityTypeNewBtn').on('click', function() {
-		addNewActivity(dt2);
-	});
-
-	$(".activityType").on('keydown', function(event) {
-		if (event.keyCode == 13) {
-			addNewActivity(dt2);
-		}
-	})
 
 
 	$('#activityTypeTable').on('click', '.deleteActivityType', function() {
@@ -143,18 +144,31 @@ function clientTable() {
         var formSelector = $(".editBusinessForm");
     	var b = {};
     	$.each($(formSelector).serializeArray(), function(i, field) {
-    		b[field.name] = field.value;
+			if (field.name != "villas[]") {
+	    		b[field.name] = field.value;
+			}
     	});
 
+		var villas = $(".clientVillas").val();
+		if(villas != null) {
+			b.villas = villas.toString();
+		}
         $.ajax({
 		type:"POST",
 		url:"/client/add",
 			data: b,
 			success: function(data) {
-                if(data.status === true) {
+                if(data.error == "") {
                     $(".clientModal").modal("hide");
                     dt.ajax.reload(null, false);
+					return;
                 }
+				new PNotify({
+					title: 'Error adding client',
+					text: data.error,
+					type: 'error',
+					icon: 'icon-blocked'
+				});
 
 			},
 			dataType: 'json',
@@ -164,6 +178,13 @@ function clientTable() {
     $(".popupContainer").on('hidden.bs.modal', '.modal', function (e) {
 
 	})
+
+	$(".popupContainer").on("select2:select", ".clientVillas ", function(){
+		if (clientCalendar != null) {
+			clientCalendar.clear();
+		}
+		getBookedDates();
+	});
 }
 
 function newClientHandler() {
@@ -174,10 +195,11 @@ function newClientHandler() {
 	$(".clientPrice").TouchSpin({
         min: 0,
         max: 1000000,
-        step: 0.1,
+        step: 100,
         decimals: 2,
     });
-	var clientCalendar = new HotelDatepicker(document.getElementById('clientCalendar'));
+
+	getBookedDates();
 }
 
 var businessEditModal = '<div class="modal fade clientModal ">'+
@@ -217,8 +239,8 @@ var businessEditModal = '<div class="modal fade clientModal ">'+
 												'<div class="form-group">'+
 													'<div class="row">'+
 														'<div class="col-sm-6">'+
-															'<label>Villas</label>'+
-															'<select class="form-control clientVillas" multiple="multiple" name="villas">'+
+															'<label>Villa</label>'+
+															'<select class="form-control clientVillas" name="villa">'+
 																'<option value="Panorama Villa">Panorama Villa</option>'+
 																'<option value="Oceania Villa">Oceania Villa</option>'+
 																'<option value="Poseidonia Villa">Poseidonia Villa</option>'+
@@ -246,19 +268,23 @@ var businessEditModal = '<div class="modal fade clientModal ">'+
 
 													'<div class="col-sm-4 clientMoney">'+
 														'<label>Price</label>'+
-														'<div class="input-group w-100">'+
-															'<div class="input-group-btn">'+
-																'<select class="form-control clientCurrency" name="currency">'+
-																	'<option value="£">£</option>'+
-																	'<option value="$">$</option>'+
-																'</select>'+
+															'<div class="row">'+
+																'<div class="col-sm-4">'+
+																	'<select class="form-control clientCurrency" name="currency">'+
+																		'<option value="£">£</option>'+
+																		'<option value="€">€</option>'+
+																	'</select>'+
+																'</div>'+
+																'<div class="col-sm-8">'+
+																	'<input type="text" class="form-control clientPrice" name="price">'+
+																'</div>'+
 															'</div>'+
-															'<input type="text" class="form-control clientPrice" name="price">'+
-														'</div>'+
+
+
 													'</div>'+
 													'<div class="col-sm-4">'+
 														'<label>Received by</label>'+
-														'<input class="form-control" name="source">'+
+														'<input class="form-control" name="referral">'+
 													'</div>'+
 												'</div>'+
 											'</div>'+
@@ -288,3 +314,27 @@ var businessEditModal = '<div class="modal fade clientModal ">'+
 						'</div>'+
 					'</div>'+
 				'</div>';
+
+function getBookedDates() {
+	$('#datepicker-clientCalendar').remove();
+	$.ajax({
+		type:"Get",
+		url:"/client/booked",
+		data: {"villa": $(".clientVillas").val()},
+		success: function(data) {
+			var bookedDates = [];
+			if (data.booked != null) {
+				for(var i=0; i < data.booked.length; i++) {
+					var oneDate = new Date(data.booked[i]);
+					bookedDates.push(fecha.format(oneDate, 'YYYY-MM-DD'));
+				}
+			}
+			clientCalendar = new HotelDatepicker(document.getElementById('clientCalendar'), {
+				startOfWeek: 'monday',
+				format: 'DD-MM-YYYY',
+				disabledDates: bookedDates,
+			});
+		},
+		dataType: 'json',
+	});
+}

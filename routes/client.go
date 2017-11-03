@@ -13,31 +13,44 @@ var (
 
 // GetClientsHandler handles the GET: /clients
 func GetClientsHandler(ctx iris.Context) {
+
 	ctx.ViewData("Title", "Index Page")
 	ctx.View(PathClientList + ".html")
+}
+
+func GetClientBookedHandler(ctx iris.Context) {
+	if !ctx.IsAjax() {
+		ctx.StatusCode(iris.StatusNotFound)
+		return
+	}
+	villa := ctx.FormValue("villa")
+	booked := repositories.SelectVillaBookedDates(villa)
+	ctx.JSON(map[string]interface{}{"booked": booked})
 }
 
 func PostClientHandler(ctx iris.Context) {
 	if !ctx.IsAjax() {
 		ctx.StatusCode(iris.StatusNotFound)
+		return
 	}
 	var msg string
 	var (
 		name     = ctx.FormValue("name")
 		email    = ctx.FormValue("email")
-		villas   = ctx.FormValue("villas")
+		villa    = ctx.FormValue("villa")
 		dates    = ctx.FormValue("dates")
 		status   = ctx.FormValue("status")
 		currency = ctx.FormValue("currency")
 		price    = ctx.FormValue("price")
-		source   = ctx.FormValue("source")
+		referral = ctx.FormValue("referral")
 	)
 
-	_, err := services.CreateUser(villas, dates, price, status, models.Client{
+	_, err := services.CreateUser(dates, price, status, models.Client{
 		Name:     name,
 		Email:    email,
+		Villa:    villa,
 		Currency: currency,
-		Source:   source,
+		Referral: referral,
 	})
 
 	if err != nil {
@@ -55,6 +68,7 @@ func PostClientHandler(ctx iris.Context) {
 func TableClientsHandler(ctx iris.Context) {
 	if !ctx.IsAjax() {
 		ctx.StatusCode(iris.StatusNotFound)
+		return
 	}
 	urlQuery := ctx.Request().URL.Query()
 	draw := urlQuery["draw"][0]

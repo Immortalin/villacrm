@@ -1,10 +1,10 @@
 package repositories
 
 import (
-	"errors"
 	"log"
 	"net/url"
 	"strconv"
+	"time"
 
 	"gopkg.in/mgo.v2/bson"
 
@@ -33,10 +33,6 @@ func CheckIfUserExists(email string) bool {
 
 // CreateUser inserts a new user in the db
 func CreateUser(client models.Client) (models.Client, error) {
-
-	if CheckIfUserExists(client.Email) {
-		return models.Client{}, errors.New("User already exists")
-	}
 	var error error
 	Db := datasource.MgoDb{}
 	client.ID = bson.NewObjectId()
@@ -96,4 +92,32 @@ func GetClientTable(urlQuery url.Values) ([]models.Client, int, int) {
 	}
 	Db.Close()
 	return clients, CountFiltered, Count
+}
+
+func SelectVillaBookedDates(villa string) []time.Time {
+	var dateSlice []time.Time
+	dateBson := []bson.M{}
+	Db := datasource.MgoDb{}
+
+	Db.Init()
+	c := Db.C(ClientCollection)
+	if err := c.Find(bson.M{"villa": villa}).Select(bson.M{"_id": 0, "in": 1, "out": 1}).All(&dateBson); err != nil {
+
+	}
+	Db.Close()
+	for _, date := range dateBson {
+		start := date["in"].(time.Time)
+		end := date["out"].(time.Time)
+		for d := start; inTimeSpan(start, end, d); d = d.AddDate(0, 0, 1) {
+			dateSlice = append(dateSlice, d)
+		}
+	}
+	return dateSlice
+}
+
+func inTimeSpan(start, end, check time.Time) bool {
+	if check.Equal(start) || check.Equal(end) {
+		return true
+	}
+	return check.After(start) && check.Before(end)
 }

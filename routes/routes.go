@@ -12,4 +12,5 @@ func Configure(b *bootstrap.Bootstrapper) {
 	client.Get("/list", GetClientsHandler)
 	client.Post("/add", PostClientHandler)
 	client.Get("/table", TableClientsHandler)
+	client.Get("/booked", GetClientBookedHandler)
 }

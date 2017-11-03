@@ -13,6 +13,7 @@ import (
 func New(b *bootstrap.Bootstrapper) iris.Handler {
 	return func(ctx iris.Context) {
 		// response headers
+		ctx.Gzip(true)
 		ctx.Header("App-Name", b.AppName)
 		ctx.Header("App-Owner", b.AppOwner)
 		ctx.Header("App-Since", time.Since(b.AppSpawnDate).String())
